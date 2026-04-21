@@ -19,6 +19,7 @@ Write a concise 2-paragraph account brief explaining:
 
 Be specific and strategic.
 Do NOT invent signals beyond the ones provided.
+Return plain text only with exactly 2 paragraphs.
 """
 
     user_prompt = f"""
@@ -39,9 +40,19 @@ is a good fit for the ICP solution.
         {"role": "user", "content": user_prompt}
     ]
 
+    if not signals:
+        return {
+            "company": company,
+            "account_brief": (
+                f"{company} does not yet show enough deterministic public growth signals in the harvester output "
+                "to justify a strong outreach thesis.\n\n"
+                "The current evidence is too weak to connect the company confidently to the ICP without risking a generic email."
+            ),
+        }
+
     response = call_llm(messages)
 
     return {
         "company": company,
-        "account_brief": response.get("content", "")
+        "account_brief": response.get("content", "").strip(),
     }

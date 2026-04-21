@@ -25,19 +25,29 @@ def root():
 
 @app.post("/run-agent")
 def run_agent_endpoint(req: AgentRequest):
+    if not req.company:
+        return {
+            "status": "error",
+            "message": "A target company is required for the FireReach prototype.",
+        }
 
-    query = f"""
-ICP: {req.icp}
+    if not req.email:
+        return {
+            "status": "error",
+            "message": "A recipient email is required to complete automated outreach.",
+        }
 
-Task: {req.task}
-
-Company: {req.company}
-Email: {req.email}
-"""
-
-    result = run_agent(query)
+    result = run_agent(
+        {
+            "icp": req.icp,
+            "task": req.task,
+            "company": req.company,
+            "email": req.email,
+        }
+    )
 
     return {
         "status": result.get("status"),
-        "data": result.get("result")
+        "message": result.get("message"),
+        "data": result.get("result"),
     }

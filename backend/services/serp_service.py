@@ -10,6 +10,8 @@ def search_google(query, num_results=5):
 
     Returns top organic results.
     """
+    if not config.SERPAPI_KEY:
+        return []
 
     params = {
         "q": query,
@@ -18,7 +20,7 @@ def search_google(query, num_results=5):
         "num": num_results
     }
 
-    response = requests.get(SERP_API_URL, params=params)
+    response = requests.get(SERP_API_URL, params=params, timeout=20)
 
     if response.status_code != 200:
         return []

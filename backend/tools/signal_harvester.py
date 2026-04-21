@@ -1,52 +1,84 @@
 from backend.services.serp_service import search_google
 
 
-def detect_signal(text: str):
-    """
-    Simple keyword-based signal detection.
-    """
+SIGNAL_QUERIES = {
+    "funding": "{company} funding OR series A OR series B OR series C",
+    "hiring": "{company} hiring OR careers OR jobs engineering sales security",
+    "leadership": "{company} new CEO OR new CTO OR leadership change",
+    "expansion": "{company} expansion OR growth OR new office OR product launch",
+    "security_stack": "{company} cybersecurity OR security platform OR security tooling",
+}
 
-    signals = []
-
-    text_lower = text.lower()
-
-    if "funding" in text_lower or "series" in text_lower:
-        signals.append("Recent funding round")
-
-    if "hiring" in text_lower or "job" in text_lower:
-        signals.append("Hiring expansion")
-
-    if "cto" in text_lower or "ceo" in text_lower or "leadership" in text_lower:
-        signals.append("Leadership change")
-
-    if "expansion" in text_lower or "growth" in text_lower:
-        signals.append("Company expansion")
-
-    return signals
+SIGNAL_PATTERNS = {
+    "funding": {
+        "label": "Recent funding momentum",
+        "keywords": ["funding", "raised", "series a", "series b", "series c", "investment"],
+    },
+    "hiring": {
+        "label": "Active hiring expansion",
+        "keywords": ["hiring", "jobs", "careers", "headcount", "recruiting"],
+    },
+    "leadership": {
+        "label": "Leadership change",
+        "keywords": ["ceo", "cto", "chief", "leadership", "appointed", "joined"],
+    },
+    "expansion": {
+        "label": "Company expansion",
+        "keywords": ["expansion", "growth", "launch", "new office", "scale", "expands"],
+    },
+    "security_stack": {
+        "label": "Security and infrastructure focus",
+        "keywords": ["security", "cybersecurity", "compliance", "platform", "infrastructure"],
+    },
+}
 
 
 def run(company: str):
     """
-    Harvest growth signals for a given company.
+    Deterministically harvest live buyer signals for a given company.
     """
+    harvested = []
+    seen_sources = set()
 
-    query = f"{company} funding OR hiring OR expansion OR CTO"
+    for signal_type, query_template in SIGNAL_QUERIES.items():
+        query = query_template.format(company=company)
+        results = search_google(query, num_results=4)
+        pattern = SIGNAL_PATTERNS[signal_type]
 
-    results = search_google(query)
+        for result in results:
+            text = f"{result.get('title', '')} {result.get('snippet', '')}".lower()
+            if not any(keyword in text for keyword in pattern["keywords"]):
+                continue
 
-    detected_signals = []
+            source_key = result.get("link")
+            if source_key in seen_sources:
+                continue
 
-    for result in results:
-        text = f"{result.get('title','')} {result.get('snippet','')}"
+            seen_sources.add(source_key)
+            harvested.append(
+                {
+                    "type": signal_type,
+                    "label": pattern["label"],
+                    "evidence": result.get("snippet") or result.get("title"),
+                    "source": result.get("link"),
+                    "title": result.get("title"),
+                }
+            )
 
-        signals = detect_signal(text)
+    signals = [
+        {
+            "type": item["type"],
+            "label": item["label"],
+            "evidence": item["evidence"],
+        }
+        for item in harvested
+    ]
 
-        detected_signals.extend(signals)
-
-    # Remove duplicates
-    detected_signals = list(set(detected_signals))
+    summary = ", ".join(sorted({item["label"] for item in harvested})) or "No qualifying external growth signals found."
 
     return {
         "company": company,
-        "signals": detected_signals
+        "signals": signals,
+        "signal_summary": summary,
+        "sources": harvested,
     }

@@ -1,35 +1,46 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FireReach Agent</title>
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<h1>🔥 FireReach Autonomous Outreach</h1>
-
 <div class="container">
+<div class="eyebrow">Autonomous Outreach Prototype</div>
+<h1>FireReach</h1>
+<p class="subcopy">Capture public growth signals, convert them into an account brief, and automatically trigger a personalized outbound email from one workflow.</p>
 
+<div class="form-grid">
+<div class="field field-wide">
 <label>ICP</label>
-<input id="icp" placeholder="We sell cybersecurity training to Series B startups">
-
-<label>Task</label>
-<input id="task" placeholder="Find companies with growth signals and send outreach">
-
-<label>Company (optional)</label>
-<input id="company">
-
-<label>Email</label>
-<input id="email">
-
-<button onclick="runAgent()">Run Agent</button>
-
+<textarea id="icp" placeholder="We sell high-end cybersecurity training to Series B startups."></textarea>
 </div>
 
-<h2>Result</h2>
+<div class="field field-wide">
+<label>Task</label>
+<textarea id="task" placeholder="Find companies with recent growth signals and send a personalized outreach email that connects their expansion to our security training."></textarea>
+</div>
 
-<pre id="result"></pre>
+<div class="field">
+<label>Target Company</label>
+<input id="company" placeholder="Ramp">
+</div>
+
+<div class="field">
+<label>Recipient Email</label>
+<input id="email" placeholder="security@company.com">
+</div>
+</div>
+
+<button onclick="runAgent()">Run FireReach</button>
+
+<h2>Result</h2>
+<pre id="result">Status: waiting</pre>
+</div>
 
 <script src="app.js"></script>
 

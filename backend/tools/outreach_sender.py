@@ -17,6 +17,7 @@ Rules:
 - Connect those signals to the product in the ICP.
 - Be professional and concise.
 - Include a clear call to action.
+- Return valid JSON with keys: subject, body, html
 """
 
     user_prompt = f"""
@@ -31,8 +32,7 @@ Signals:
 Account Brief:
 {account_brief}
 
-Write an outreach email.
-Include a subject line and body.
+Write the email now.
 """
 
     messages = [
@@ -42,18 +42,25 @@ Include a subject line and body.
 
     response = call_llm(messages)
 
-    email_content = response.get("content", "")
+    subject = response.get("subject") or f"Security training for {company}'s next growth phase"
+    body = response.get("body") or response.get("content", "").strip()
+    html = response.get("html") or body.replace("\n", "<br>")
 
-    # Basic subject/body split
-    subject = f"Helping {company} scale securely"
-    body = email_content
+    if not body:
+        body = (
+            f"I noticed {company} is showing recent growth activity, including {', '.join(signal.get('label', '') for signal in signals[:2])}. "
+            f"Teams in that stage often need stronger security habits as headcount and systems expand.\n\n"
+            f"We help companies that fit this ICP: {icp}. If it would be useful, I can share how similar teams turn rapid expansion into practical security training rollouts."
+        )
+        html = body.replace("\n", "<br>")
 
-    result = send_email(email, subject, body)
+    result = send_email(email, subject, html)
 
     return {
         "company": company,
         "email": email,
         "subject": subject,
         "body": body,
+        "html": html,
         "delivery_status": result
     }

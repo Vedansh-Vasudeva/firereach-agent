@@ -1,12 +1,21 @@
 import json
 import re
-from groq import Groq
 from backend.config import config
 
-client = Groq(api_key=config.GROQ_API_KEY)
+try:
+    from groq import Groq
+except ImportError:
+    Groq = None
+
+client = Groq(api_key=config.GROQ_API_KEY) if Groq and config.GROQ_API_KEY else None
 
 
 def call_llm(messages, model="llama-3.3-70b-versatile", temperature=0.2):
+    if not Groq:
+        return {"content": "LLM request skipped because the groq package is not installed."}
+
+    if not config.GROQ_API_KEY:
+        return {"content": "LLM request skipped because GROQ_API_KEY is not configured."}
 
     response = client.chat.completions.create(
         model=model,
